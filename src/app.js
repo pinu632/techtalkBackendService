@@ -46,7 +46,7 @@ app.use("/api/v1/event", eventRoutes);
 
 app.use("/api/v1/registration", registrationRoutes);
 app.use("/api/v1/media", mediaRoutes);
-app.use("/api/v1/blogs", blogRoutes)
+app.use("/api/v1/blogs", blogRoutes);
 app.use("/api/v1/members", membersRoutes);
 // app.use("/api/v1/notification", notificationRoutes);
 
