@@ -28,6 +28,7 @@ jobs:
 
             echo "Pulling latest image..."
             docker pull $IMAGE
+            
 
             echo "Stopping old container..."
             docker stop backend || true
