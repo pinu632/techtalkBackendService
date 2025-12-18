@@ -22,6 +22,11 @@ router.post(
   logRoute("POST /registration - Create single registration"),
   RegistrationController.createRegistration
 );
+router.post(
+  "/check",
+  logRoute("POST /registration/check "),
+  RegistrationController.checkRegistrationStatus
+);
 
 // Bulk create registrations
 router.post(

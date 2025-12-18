@@ -125,7 +125,7 @@ export const getPublishedBlogs = async (req, res, next) => {
       sortBy: { createdAt: -1 },
       populatedQuery: {
         path: "author",
-        select: "name profileImage",
+        select: "name profilePic class",
       },
     });
 

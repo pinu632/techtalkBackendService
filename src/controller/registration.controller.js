@@ -349,3 +349,39 @@ export const registerWithStudentCheck = async (req, res, next) => {
     next(error);
   }
 };
+
+
+export const checkRegistrationStatus = async (req, res, next) => {
+  try {
+    const { eventId, studentId } = req.body;
+
+    if (!eventId || !studentId) {
+      return res.status(400).json({
+        success: false,
+        message: "eventId and studentId are required",
+      });
+    }
+
+    const registration = await registrationHelper.getObjectByQuery({
+      eventId,
+      studentId,
+    });
+
+    if (!registration) {
+      return successResponse(res, 200, "Not registered", {
+        isRegistered: false,
+        status: null,
+        isActive: false,
+      });
+    }
+
+    return successResponse(res, 200, "Registration status fetched", {
+      isRegistered: registration.status === "registered",
+      status: registration.status,
+      isActive: registration.isActive,
+      registrationId: registration._id,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
