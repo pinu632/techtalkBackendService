@@ -97,12 +97,13 @@ export const getRegistrationById = async (req, res, next) => {
 
 export const getAllRegistrations = async (req, res, next) => {
   try {
-    const { filter, pageNum = 1, pageSize = 10, select } = req.body;
+    const { filter, pageNum = 1, pageSize = 10, select,populate } = req.body;
 
     let input = { pageNum, pageSize };
 
     if (filter) input.query = filter;
     if (select) input.selectFrom = select;
+    if(populate) input.populatedQuery = populate;
 
     const registrations = await registrationHelper.getAllObjects(input);
     const totalRegistrations = await registrationHelper.getAllObjectCount(
