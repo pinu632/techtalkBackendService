@@ -97,13 +97,13 @@ export const getRegistrationById = async (req, res, next) => {
 
 export const getAllRegistrations = async (req, res, next) => {
   try {
-    const { filter, pageNum = 1, pageSize = 10, select,populate } = req.body;
+    const { filter, pageNum = 1, pageSize = 10, select, populate } = req.body;
 
     let input = { pageNum, pageSize };
 
     if (filter) input.query = filter;
     if (select) input.selectFrom = select;
-    if(populate) input.populatedQuery = populate;
+    if (populate) input.populatedQuery = populate;
 
     const registrations = await registrationHelper.getAllObjects(input);
     const totalRegistrations = await registrationHelper.getAllObjectCount(
@@ -351,7 +351,6 @@ export const registerWithStudentCheck = async (req, res, next) => {
   }
 };
 
-
 export const checkRegistrationStatus = async (req, res, next) => {
   try {
     const { eventId, studentId } = req.body;
@@ -364,8 +363,10 @@ export const checkRegistrationStatus = async (req, res, next) => {
     }
 
     const registration = await registrationHelper.getObjectByQuery({
-      eventId,
-      studentId,
+      query: {
+        eventId,
+        studentId,
+      },
     });
 
     if (!registration) {
