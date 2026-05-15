@@ -15,6 +15,17 @@ const GallerySchema = new mongoose.Schema(
       trim: true,
     },
 
+    resource_type: {
+      type: String,
+      enum: ["image", "raw"],
+      default: "image",
+    },
+
+    original_name: {
+      type: String,
+      trim: true,
+    },
+
     // Caption
     caption: {
       type: String,
@@ -82,6 +93,7 @@ const GallerySchema = new mongoose.Schema(
       height: Number,
       format: String,
       size_in_kb: Number,
+      mime_type: String,
     },
 
     is_public: {

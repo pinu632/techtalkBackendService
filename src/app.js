@@ -12,6 +12,7 @@ import eventRoutes from "./routes/event.routes.js"
 import registrationRoutes from "./routes/registration.routes.js";
 import blogRoutes from './routes/blogs.routes.js'
 import membersRoutes from './routes/memeber.routes.js'
+import notesRoutes from "./modules/notes/notes.routes.js";
 
 
 
@@ -48,6 +49,7 @@ app.use("/api/v1/registration", registrationRoutes);
 app.use("/api/v1/media", mediaRoutes);
 app.use("/api/v1/blogs", blogRoutes);
 app.use("/api/v1/members", membersRoutes);
+app.use("/api/v1/notes", notesRoutes);
 // app.use("/api/v1/notification", notificationRoutes);
 
 app.use(errorMiddleware);

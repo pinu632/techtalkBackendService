@@ -2,32 +2,57 @@ import express from "express";
 import { upload } from "../middlewares/upload.middleware.js";
 import ImageHelper from "../helpers/imageHelpers.js";
 import { successResponse } from "../handlers/responsehandler.js";
-import sharp from "sharp";
 import cloudinary from "../config/cloudinary.js";
+import AppError from "../handlers/AppError.js";
 
 const router = express.Router();
 
+const buildMetadata = (file, cloudinaryMeta = null) => {
+  return {
+    width: cloudinaryMeta?.width,
+    height: cloudinaryMeta?.height,
+    format: cloudinaryMeta?.format || file.format,
+    size_in_kb: cloudinaryMeta
+      ? cloudinaryMeta.bytes / 1024
+      : file.size
+      ? file.size / 1024
+      : undefined,
+    mime_type: file.mimetype,
+  };
+};
+
 router.post("/upload", upload.single("photo"), async (req, res) => {
   try {
-    console.log(req);
     const { uploaded_by } = req.body;
+
+    if (!req.file) {
+      throw new AppError("No file uploaded", 400);
+    }
+
+    const resourceType = req.file.mimetype.startsWith("image/")
+      ? "image"
+      : "raw";
+
+    const publicId = req.file.filename;
+    const cloudinaryMeta = await cloudinary.api.resource(publicId, {
+      resource_type: resourceType,
+    });
+
     const newImage = await ImageHelper.addObject({
-      url: req.file.path,
-      storage_id: req.file.filename,
-      metadata: {
-        width: req.file.width,
-        height: req.file.height,
-        format: req.file.format,
-        size_in_kb: req.file.size,
-      },
+      url: cloudinaryMeta.secure_url || req.file.path,
+      storage_id: publicId,
+      resource_type: resourceType,
+      original_name: req.file.originalname,
+      metadata: buildMetadata(req.file, cloudinaryMeta),
       uploaded_by,
     });
 
     return res.json({
       success: true,
       _id: newImage._id,
-      url: req.file.path, // Cloudinary URL
-      public_id: req.file.filename,
+      url: cloudinaryMeta.secure_url || req.file.path,
+      public_id: publicId,
+      resource_type: resourceType,
     });
   } catch (error) {
     console.log(error);
@@ -49,22 +74,21 @@ router.post(
       const savedImages = [];
 
       for (const file of req.files) {
-        // file.filename is the public_id in Cloudinary
         const publicId = file.filename;
+        const resourceType = file.mimetype.startsWith("image/")
+          ? "image"
+          : "raw";
 
-        // Get metadata from Cloudinary
-        const meta = await cloudinary.api.resource(publicId);
+        const meta = await cloudinary.api.resource(publicId, {
+          resource_type: resourceType,
+        });
 
-        const width = meta.width;
-        const height = meta.height;
-        const format = meta.format;
-        const sizeKB = meta.bytes / 1024;
-
-        // Save in DB
         const newImage = await ImageHelper.addObject({
           url: meta.secure_url,
           storage_id: publicId,
-          metadata: { width, height, format, size_in_kb: sizeKB },
+          resource_type: resourceType,
+          original_name: file.originalname,
+          metadata: buildMetadata(file, meta),
           uploaded_by,
           type: "Event",
         });
@@ -73,10 +97,11 @@ router.post(
           _id: newImage._id,
           url: meta.secure_url,
           public_id: publicId,
-          width,
-          height,
-          format,
-          sizeKB,
+          resource_type: resourceType,
+          width: meta.width,
+          height: meta.height,
+          format: meta.format,
+          sizeKB: meta.bytes / 1024,
         });
       }
 
@@ -148,7 +173,9 @@ router.post("/delete", async (req, res, next) => {
 
     // 3. Delete from Cloudinary
     if (image.storage_id) {
-      const res = await cloudinary.uploader.destroy(image.storage_id);
+      const res = await cloudinary.uploader.destroy(image.storage_id, {
+        resource_type: image.resource_type || "image",
+      });
       console.log(res);
     }
     console.log(image);
